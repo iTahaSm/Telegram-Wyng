@@ -13,7 +13,7 @@ jobs:
   build:
     name: Build Telegram APK
     runs-on: ubuntu-22.04
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     steps:
       - name: Checkout repository and submodules
@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 1
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -32,20 +32,21 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK / NDK / CMake
+      - name: Install Android SDK packages
         run: |
           sdkmanager --install \
             "platforms;android-35" \
             "platforms;android-36" \
             "build-tools;34.0.0" \
             "build-tools;36.0.0" \
-            "cmake;3.10.2" \
             "cmake;3.22.1" \
             "ndk;26.3.11579264"
 
-          yes | sdkmanager --licenses || true
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
 
-      - name: Configure Gradle for CI
+      - name: Configure Gradle
         run: |
           mkdir -p ~/.gradle
 
@@ -55,7 +56,7 @@ jobs:
           org.gradle.parallel=true
           EOF
 
-      - name: Disable repository-local proxy settings
+      - name: Remove local proxy settings
         run: |
           if [ -f gradle.properties ]; then
             sed -i '/^[[:space:]]*systemProp\.http\.proxyHost[[:space:]]*=/d' gradle.properties
@@ -64,6 +65,18 @@ jobs:
             sed -i '/^[[:space:]]*systemProp\.https\.proxyPort[[:space:]]*=/d' gradle.properties
           fi
 
+      - name: Verify Android toolchain
+        run: |
+          echo "Java:"
+          java -version
+
+          echo "Gradle:"
+          ./gradlew --version
+
+          echo "Android SDK:"
+          sdkmanager --list_installed | grep -E \
+            'platforms;android-(35|36)|build-tools;|cmake;3.22.1|ndk;26.3.11579264' || true
+
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
@@ -71,7 +84,8 @@ jobs:
         run: |
           ./gradlew :TMessagesProj_App:assembleAfatDebug \
             --stacktrace \
-            --no-daemon
+            --no-daemon \
+            --console=plain
 
       - name: Find APK
         if: success()
