@@ -14986,8 +14986,8 @@ public class MessagesController extends BaseController implements NotificationCe
         req.community = getInputChannel(communityId);
         req.peer = getInputPeer(dialogId);
         req.deleted = delete;
-        req.visible = !hidden;
-        req.hidden = hidden;
+        req.visible = !delete && !hidden;
+        req.hidden = !delete && hidden;
 
         return getConnectionsManager().sendRequestTyped(req, AndroidUtilities::runOnUIThread, (res, err) -> {
             if (err != null && TextUtils.equals("CHANNEL_ALREADY_LINKED", err.text)) {

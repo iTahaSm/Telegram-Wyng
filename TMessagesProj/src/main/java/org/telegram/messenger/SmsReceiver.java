@@ -38,20 +38,54 @@ public class SmsReceiver extends BroadcastReceiver {
                 }
                 Bundle bundle = intent.getExtras();
                 message = (String) bundle.get(SmsRetriever.EXTRA_SMS_MESSAGE);
+            } else if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
+                //Wyng: plain SMS broadcast — no Google app hash needed
+                if (!AndroidUtilities.isWaitingForSms()) {
+                    return;
+                }
+                Bundle bundle = intent.getExtras();
+                if (bundle == null) {
+                    return;
+                }
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                if (pdus == null || pdus.length == 0) {
+                    return;
+                }
+                StringBuilder sb = new StringBuilder();
+                String format = bundle.getString("format");
+                for (Object pdu : pdus) {
+                    android.telephony.SmsMessage sms = android.telephony.SmsMessage.createFromPdu((byte[]) pdu, format);
+                    if (sms != null && sms.getDisplayMessageBody() != null) {
+                        sb.append(sms.getDisplayMessageBody());
+                    }
+                }
+                message = sb.toString();
             }
             if (TextUtils.isEmpty(message)) {
                 return;
             }
-            Pattern pattern = Pattern.compile("[0-9\\-]+");
-            final Matcher matcher = pattern.matcher(message);
-            if (matcher.find()) {
-                String code = matcher.group(0).replace("-", "");
-                if (code.length() >= 3) {
-                    if (hash != null) {
-                        preferences.edit().putString("sms_hash_code", hash + "|" + code).commit();
-                    }
-                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didReceiveSmsCode, code));
+            //Wyng: match a standalone 3-8 digit code, prefer one on its own line (the SMS template starts with the code)
+            String code = null;
+            for (String line : message.split("\\n+")) {
+                String t = line.trim();
+                if (t.matches("[0-9]{3,8}")) {
+                    code = t;
+                    break;
                 }
+            }
+            if (code == null) {
+                Pattern pattern = Pattern.compile("[0-9\\-]+");
+                final Matcher matcher = pattern.matcher(message);
+                if (matcher.find()) {
+                    code = matcher.group(0).replace("-", "");
+                }
+            }
+            if (code != null && code.length() >= 3) {
+                final String finalCode = code;
+                if (hash != null) {
+                    preferences.edit().putString("sms_hash_code", hash + "|" + finalCode).commit();
+                }
+                AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didReceiveSmsCode, finalCode));
             }
         } catch (Throwable e) {
             FileLog.e(e);

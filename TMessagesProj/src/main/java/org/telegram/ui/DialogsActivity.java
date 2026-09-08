@@ -3270,6 +3270,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             proxyMenuSubItem.setItemHeight(56);
             proxyMenuSubItem.setTextAndIcon(getString(R.string.MenuProxyTitle), 0, proxyDrawable);
             proxyMenuSubItem.setContentDescription(getString(R.string.ProxySettings));
+            proxyMenuSubItem.setVisibility(View.GONE); //Wyng: proxy disabled
 
             passcodeItem = menu.addItem(1, R.drawable.outline_header_lock_24);
             passcodeItem.setContentDescription(getString(R.string.AccDescrPasscodeLock));
@@ -13695,9 +13696,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             switchingTheme = true;
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
-            String dayThemeName = preferences.getString("lastDayTheme", "Blue");
+            String dayThemeName = preferences.getString("lastDayTheme", "Day");
             if (Theme.getTheme(dayThemeName) == null || Theme.getTheme(dayThemeName).isDark()) {
-                dayThemeName = "Blue";
+                dayThemeName = "Day";
             }
             String nightThemeName = preferences.getString("lastDarkTheme", "Dark Blue");
             if (Theme.getTheme(nightThemeName) == null || !Theme.getTheme(nightThemeName).isDark()) {
@@ -13706,7 +13707,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             Theme.ThemeInfo themeInfo = Theme.getActiveTheme();
             if (dayThemeName.equals(nightThemeName)) {
                 if (themeInfo.isDark() || dayThemeName.equals("Dark Blue") || dayThemeName.equals("Night")) {
-                    dayThemeName = "Blue";
+                    dayThemeName = "Day";
                 } else {
                     nightThemeName = "Dark Blue";
                 }
@@ -13778,8 +13779,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             final String proxyAddress = preferences.getString("proxy_ip", "");
             final boolean proxyEnabled = preferences.getBoolean("proxy_enabled", false);
-            final boolean proxyVisible = proxyEnabled && !TextUtils.isEmpty(proxyAddress)
-                    || getMessagesController().blockedCountry && !SharedConfig.proxyList.isEmpty();
+            final boolean proxyVisible = false; //Wyng: proxy disabled
+//Wyng            final boolean proxyVisible = proxyEnabled && !TextUtils.isEmpty(proxyAddress)
+//Wyng                    || getMessagesController().blockedCountry && !SharedConfig.proxyList.isEmpty();
 
             if (proxyVisible) {
                 io.addGap();

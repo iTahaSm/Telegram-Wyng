@@ -4055,6 +4055,10 @@ public class Theme {
 
         sortThemes();
 
+        //Wyng: default theme is "Day" (the green chick theme), not "Blue"
+        defaultTheme = themesDict.get("Day");
+        currentDayTheme = defaultTheme;
+
         ThemeInfo applyingTheme = null;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         try {

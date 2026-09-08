@@ -1407,6 +1407,7 @@ public class FileLoadOperation {
 
     private void cancelRequests(Runnable fullyCancelled) {
         FileLog.d("cancelRequests" + (fullyCancelled != null ? " with callback" : ""));
+        boolean hasWaitingForCancelled = false;
         if (requestInfos != null) {
             int[] waitingForCancelledCount = new int[1];
             int[] waitingDownloadSize = new int[2];
@@ -1428,6 +1429,7 @@ public class FileLoadOperation {
                             }
                         };
                         waitingForCancelledCount[0]++;
+                        hasWaitingForCancelled = true;
                         FileLog.d("cancelRequests cancel " + requestInfo.requestToken + " with callback");
                         ConnectionsManager.getInstance(currentAccount).cancelRequest(requestInfo.requestToken, true, () -> {
                             if (requestInfo.whenCancelled != null) {
@@ -1446,6 +1448,9 @@ public class FileLoadOperation {
                     ConnectionsManager.getInstance(currentAccount).discardConnection(datacenterId, connectionType);
                 }
             }
+        }
+        if (fullyCancelled != null && !hasWaitingForCancelled) {
+            fullyCancelled.run();
         }
     }
 

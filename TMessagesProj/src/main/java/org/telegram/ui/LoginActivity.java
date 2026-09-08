@@ -972,6 +972,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 ((PhoneView)views[currentViewNum]).confirmedNumber = true;
                 views[currentViewNum].onNextPressed(null);
             }
+        } else if (requestCode == 8) {
+            //Wyng: SMS permission result — nothing else needed, receiver will auto-fill when SMS arrives
         } else if (requestCode == BasePermissionsActivity.REQUEST_CODE_CALLS) {
             checkShowPermissions = false;
             if (currentViewNum == VIEW_PHONE_INPUT) {
@@ -4322,6 +4324,15 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             } else if (currentType == AUTH_TYPE_SMS) {
                 AndroidUtilities.setWaitingForSms(true);
                 NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didReceiveSmsCode);
+                //Wyng: request SMS permission so the plain SMS broadcast receiver can auto-fill the code
+                if (getParentActivity() != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                        getParentActivity().checkSelfPermission(android.Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    try {
+                        getParentActivity().requestPermissions(new String[]{android.Manifest.permission.RECEIVE_SMS, android.Manifest.permission.READ_SMS}, 8);
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                }
             } else if (currentType == AUTH_TYPE_FLASH_CALL) {
                 AndroidUtilities.setWaitingForCall(true);
                 NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didReceiveCall);
@@ -8766,6 +8777,11 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
     private void updateProxyButton(boolean animated, boolean force) {
         if (proxyDrawable == null) {
+            return;
+        }
+        //Wyng: proxy disabled — never show the proxy button on login
+        showProxyButton(false, animated);
+        if (true) {
             return;
         }
         int state = getConnectionsManager().getConnectionState();

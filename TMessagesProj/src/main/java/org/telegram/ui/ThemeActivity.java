@@ -672,9 +672,10 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             chatListRow = rowCount++;
             chatListInfoRow = rowCount++;
 
-            appIconHeaderRow = rowCount++;
-            appIconSelectorRow = rowCount++;
-            appIconShadowRow = rowCount++;
+//Wyng: app icon selector removed
+//Wyng            appIconHeaderRow = rowCount++;
+//Wyng            appIconSelectorRow = rowCount++;
+//Wyng            appIconShadowRow = rowCount++;
 
             swipeGestureHeaderRow = rowCount++;
             swipeGestureRow = rowCount++;
@@ -1052,9 +1053,9 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     }
                 } else if (id == day_night_switch) {
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
-                    String dayThemeName = preferences.getString("lastDayTheme", "Blue");
+                    String dayThemeName = preferences.getString("lastDayTheme", "Day");
                     if (Theme.getTheme(dayThemeName) == null || Theme.getTheme(dayThemeName).isDark()) {
-                        dayThemeName = "Blue";
+                        dayThemeName = "Day";
                     }
                     String nightThemeName = preferences.getString("lastDarkTheme", "Dark Blue");
                     if (Theme.getTheme(nightThemeName) == null || !Theme.getTheme(nightThemeName).isDark()) {
@@ -1063,7 +1064,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     Theme.ThemeInfo themeInfo = Theme.getActiveTheme();
                     if (dayThemeName.equals(nightThemeName)) {
                         if (themeInfo.isDark() || dayThemeName.equals("Dark Blue") || dayThemeName.equals("Night")) {
-                            dayThemeName = "Blue";
+                            dayThemeName = "Day";
                         } else {
                             nightThemeName = "Dark Blue";
                         }

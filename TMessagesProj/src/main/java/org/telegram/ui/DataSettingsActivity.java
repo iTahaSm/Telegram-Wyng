@@ -97,10 +97,10 @@ public class DataSettingsActivity extends BaseFragment {
     private int useLessDataForCallsRow;
     private int quickRepliesRow = -1;
     private int callsSection2Row;
-    private int proxySectionRow;
+    private int proxySectionRow = -1;
     @Keep
-    private int proxyRow;
-    private int proxySection2Row;
+    private int proxyRow = -1;
+    private int proxySection2Row = -1;
     @Keep
     private int clearDraftsRow;
     private int clearDraftsSectionRow;
@@ -194,9 +194,9 @@ public class DataSettingsActivity extends BaseFragment {
         useLessDataForCallsRow = rowCount++;
 //        quickRepliesRow = rowCount++;
         callsSection2Row = rowCount++;
-        proxySectionRow = rowCount++;
-        proxyRow = rowCount++;
-        proxySection2Row = rowCount++;
+//Wyng        proxySectionRow = rowCount++;
+//Wyng        proxyRow = rowCount++;
+//Wyng        proxySection2Row = rowCount++;
         clearDraftsRow = rowCount++;
         clearDraftsSectionRow = rowCount++;
 
@@ -549,7 +549,7 @@ public class DataSettingsActivity extends BaseFragment {
                 builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                 showDialog(builder.create());
             } else if (position == proxyRow) {
-                presentFragment(new ProxyListActivity());
+                //Wyng: proxy disabled
             } else if (position == enableStreamRow) {
                 SharedConfig.toggleStreamMedia();
                 TextCheckCell textCheckCell = (TextCheckCell) view;

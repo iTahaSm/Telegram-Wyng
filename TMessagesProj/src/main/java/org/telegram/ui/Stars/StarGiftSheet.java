@@ -608,6 +608,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
         checkboxLayout.setOnClickListener(v -> {
             if (button.isLoading()) return;
             checkbox.setChecked(!checkbox.isChecked(), true);
+            upgrade_form = null;
         });
 
         fireworksOverlay = new FireworksOverlay(context);
@@ -6213,6 +6214,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
                 }
                 AndroidUtilities.runOnUIThread(() -> {
                     if (err != null || !(res instanceof TLRPC.Updates)) {
+                        button.setLoading(false);
                         getBulletinFactory()
                             .showForError(err);
                         return;
@@ -6355,6 +6357,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
                         sheet.show();
                     });
                 } else {
+                    button.setLoading(false);
                     getBulletinFactory()
                         .showForError(err2);
                 }

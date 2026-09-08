@@ -1827,7 +1827,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                     dt = 18;
                 }
                 lastFrameTime = newTime;
-                float duration = preview && open ? 190.0f : 150.0f;
+                float duration = (preview && open ? 190.0f : 150.0f) / Math.max(0.1f, org.telegram.inugram.InuConfig.animationMultiplier());
                 animationProgress += dt / duration;
                 if (animationProgress > 1.0f) {
                     animationProgress = 1.0f;

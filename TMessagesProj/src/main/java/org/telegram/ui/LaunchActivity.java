@@ -260,6 +260,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     public final static String EXTRA_FORCE_NOT_INTERNAL_APPS = "force_not_internal_apps";
     public final static String EXTRA_FORCE_REQUEST = "force_request";
     public final static Pattern PREFIX_T_ME_PATTERN = Pattern.compile("^(?:http(?:s|)://|)([A-z0-9-]+?)\\.telesrv\\.net");
+    public final static Pattern PREFIX_WYNG_PATTERN = Pattern.compile("^(?:http(?:s|)://|)(?:www\\.|)([A-z0-9-]+?)\\.wyng\\.ir");
 
     public static boolean isActive;
     private static int activeInstanceCount;
@@ -1507,14 +1508,24 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (intent != null && intent.getData() != null && "telesrv".equalsIgnoreCase(intent.getData().getScheme())) {
             intent.setData(intent.getData().buildUpon().scheme("tg").build());
         }
+        // Normalize the public wyng:// scheme to Telegram's internal tg:// flow.
+        if (intent != null && intent.getData() != null && "wyng".equalsIgnoreCase(intent.getData().getScheme())) {
+            String s = intent.getData().toString();
+            intent.setData(Uri.parse(s.replaceFirst("(?i)^wyng:", "tg:")));
+        }
         if (GiftInfoBottomSheet.handleIntent(intent, progress)) {
             return true;
         }
         if (UserSelectorBottomSheet.handleIntent(intent, progress)) {
             return true;
         }
-        if (AndroidUtilities.handleProxyIntent(this, intent, true)) {
-            return true;
+        //Wyng: proxy disabled — tg://proxy & tg://socks links are ignored
+        if (intent != null) {
+            String proxyUrl = intent.getData() != null ? intent.getData().toString().toLowerCase() : "";
+            if (proxyUrl.startsWith("tg:proxy") || proxyUrl.startsWith("tg://proxy") || proxyUrl.startsWith("tg:socks") || proxyUrl.startsWith("tg://socks")
+                    || proxyUrl.startsWith("https://t.me/proxy") || proxyUrl.startsWith("https://t.me/socks") || proxyUrl.startsWith("https://telegram.me/proxy") || proxyUrl.startsWith("https://telegram.me/socks")) {
+                return true;
+            }
         }
         if (intent == null || !Intent.ACTION_MAIN.equals(intent.getAction())) {
             if (PhotoViewer.hasInstance() && PhotoViewer.getInstance().isVisible()) {
@@ -1752,7 +1763,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     if (error) {
                         Toast.makeText(this, "Unsupported content", Toast.LENGTH_SHORT).show();
                     }
-                } else if ("org.telegram.messenger.CREATE_STICKER_PACK".equals(intent.getAction())) {
+                } else if ("ir.wyng.app.CREATE_STICKER_PACK".equals(intent.getAction())) {
                     try {
                         importingStickers = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                         importingStickersEmoji = intent.getStringArrayListExtra("STICKER_EMOJIS");
@@ -1966,6 +1977,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                 case "http":
                                 case "https": {
                                     String host = data.getHost().toLowerCase();
+                                    Matcher wyngMatcher = PREFIX_WYNG_PATTERN.matcher(host);
+                                    if (host.equals("wyng.ir") || host.equals("www.wyng.ir") || wyngMatcher.find()) {
+                                        String wyngHost = host.equals("wyng.ir") || host.equals("www.wyng.ir") ? null : wyngMatcher.group(1);
+                                        Uri wyngData = Uri.parse("https://telesrv.net/" + (wyngHost != null ? wyngHost + "/" : "") + (TextUtils.isEmpty(data.getPath()) ? "" : data.getPath().substring(1)) + (TextUtils.isEmpty(data.getQuery()) ? "" : "?" + data.getQuery()));
+                                        Intent wyngIntent = new Intent(intent.getAction(), wyngData);
+                                        wyngIntent.putExtras(intent);
+                                        handleIntent(wyngIntent, isNew, restore, fromPassword, progress, rebuildFragments, openedTelegram);
+                                        return false;
+                                    }
                                     Matcher prefixMatcher = PREFIX_T_ME_PATTERN.matcher(host);
                                     boolean isPrefix = prefixMatcher.find();
                                     if (host.equals("telesrv.net") || isPrefix) {
@@ -2858,9 +2878,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                             NotificationCenter.getInstance(intentAccount[0]).postNotificationName(NotificationCenter.closeChats);
                                             push_user_id = userId;
                                             String mimeType = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
-                                            if (TextUtils.equals(mimeType, "vnd.android.cursor.item/vnd.org.telegram.messenger.android.call")) {
+                                            if (TextUtils.equals(mimeType, "vnd.android.cursor.item/vnd.ir.wyng.app.android.call")) {
                                                 audioCallUser = true;
-                                            } else if (TextUtils.equals(mimeType, "vnd.android.cursor.item/vnd.org.telegram.messenger.android.call.video")) {
+                                            } else if (TextUtils.equals(mimeType, "vnd.android.cursor.item/vnd.ir.wyng.app.android.call.video")) {
                                                 videoCallUser = true;
                                             }
                                         }
@@ -2871,7 +2891,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                             }
                         }
                     }
-                } else if (intent.getAction().equals("org.telegram.messenger.OPEN_ACCOUNT")) {
+                } else if (intent.getAction().equals("ir.wyng.app.OPEN_ACCOUNT")) {
                     open_settings = 1;
                 } else if (intent.getAction().equals("new_dialog")) {
                     open_new_dialog = 1;
@@ -8221,20 +8241,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
         if (currentConnectionState == ConnectionsManager.ConnectionStateConnecting || currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
             action = () -> {
-                BaseFragment lastFragment = null;
-                if (AndroidUtilities.isTablet()) {
-                    if (!layerFragmentsStack.isEmpty()) {
-                        lastFragment = layerFragmentsStack.get(layerFragmentsStack.size() - 1);
-                    }
-                } else {
-                    if (!mainFragmentsStack.isEmpty()) {
-                        lastFragment = mainFragmentsStack.get(mainFragmentsStack.size() - 1);
-                    }
-                }
-                if (lastFragment instanceof ProxyListActivity || lastFragment instanceof ProxySettingsActivity) {
-                    return;
-                }
-                presentFragment(new ProxyListActivity());
+                //Wyng: proxy disabled — tapping connection status no longer opens proxy list
             };
         }
         actionBarLayout.setTitleOverlayText(title, titleId, action);

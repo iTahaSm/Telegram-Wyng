@@ -88,8 +88,12 @@ public class LinkManager {
         if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
             return handleHttp(uri);
 
-        if ("tg".equalsIgnoreCase(scheme))
+        if ("tg".equalsIgnoreCase(scheme) || "wyng".equalsIgnoreCase(scheme)) {
+            if ("wyng".equalsIgnoreCase(scheme)) {
+                uri = Uri.parse(uri.toString().replaceFirst("(?i)^wyng:", "tg:"));
+            }
             return handleTg(uri);
+        }
 
         return false;
     }
@@ -102,7 +106,15 @@ public class LinkManager {
     private boolean handleHttp(Uri uri) {
         final String host = uri.getHost();
         if (host == null) return false;
-        final Matcher prefixMatcher = LaunchActivity.PREFIX_T_ME_PATTERN.matcher(host.toLowerCase());
+        final String lowerHost = host.toLowerCase();
+        final Matcher wyngMatcher = LaunchActivity.PREFIX_WYNG_PATTERN.matcher(lowerHost);
+        final boolean isWyngPrefix = wyngMatcher.find();
+        if ("wyng.ir".equalsIgnoreCase(lowerHost) || "www.wyng.ir".equalsIgnoreCase(lowerHost) || isWyngPrefix) {
+            final String wyngPrefix = isWyngPrefix ? wyngMatcher.group(1) : null;
+            uri = Uri.parse("https://telesrv.net/" + (wyngPrefix != null ? wyngPrefix : "") + (TextUtils.isEmpty(uri.getPath()) ? "" : uri.getPath()) + (TextUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery()));
+            return handleHttp(uri);
+        }
+        final Matcher prefixMatcher = LaunchActivity.PREFIX_T_ME_PATTERN.matcher(lowerHost);
         final boolean isPrefix = prefixMatcher.find();
         if (!"telesrv.net".equalsIgnoreCase(host) && !isPrefix)
             return false;
@@ -998,14 +1010,8 @@ public class LinkManager {
             }
 
             if (!TextUtils.isEmpty(third) && "proxy".equalsIgnoreCase(second)) {
-                presentFragment(new ProxyListActivity());
-
-                if ("use-proxy".equalsIgnoreCase(third))
-                    scrollTo("useProxyRow");
-                if ("add-proxy".equalsIgnoreCase(third))
-                    scrollTo("proxyAddRow");
-                if ("use-for-calls".equalsIgnoreCase(third))
-                    scrollTo("callsRow");
+                //Wyng: proxy disabled — route to data settings instead
+                scrollTo("proxyRow");
 
                 return true;
             }

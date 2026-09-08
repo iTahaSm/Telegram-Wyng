@@ -30,7 +30,7 @@ dependencies {
 
 android {
     compileSdkVersion 35
-    buildToolsVersion '35.0.0'
+    buildToolsVersion '34.0.0'
 
     defaultConfig.applicationId = APP_PACKAGE
 
@@ -105,7 +105,7 @@ android {
     productFlavors {
         afat {
             ndk {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                abiFilters "arm64-v8a"
             }
             sourceSets.debug {
                 manifest.srcFile '../TMessagesProj/config/debug/AndroidManifest_SDK23.xml'
@@ -139,7 +139,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 35
         versionName APP_VERSION_NAME
-        ndkVersion "27.2.12479018"
+        ndkVersion "26.3.11579264"
 
         multiDexEnabled true
 
@@ -163,4 +163,3 @@ android {
     }
 }
 
-apply plugin: 'com.google.gms.google-services'

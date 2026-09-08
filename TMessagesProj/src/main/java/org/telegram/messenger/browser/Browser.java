@@ -705,6 +705,14 @@ public class Browser {
             host = host != null ? host.toLowerCase() : "";
         }
 
+        Matcher wyngMatcher = LaunchActivity.PREFIX_WYNG_PATTERN.matcher(host);
+        if (wyngMatcher.find()) {
+            uri = Uri.parse("https://telesrv.net/" + wyngMatcher.group(1) + (TextUtils.isEmpty(uri.getPath()) ? "" : "/" + uri.getPath()) + (TextUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery()));
+
+            host = uri.getHost();
+            host = host != null ? host.toLowerCase() : "";
+        }
+
         if ("ton".equals(uri.getScheme())) {
             try {
                 Intent viewIntent = new Intent(Intent.ACTION_VIEW, uri);
@@ -717,6 +725,8 @@ public class Browser {
             }
             return true;
         } else if ("tg".equals(uri.getScheme())) {
+            return true;
+        } else if ("wyng".equals(uri.getScheme())) {
             return true;
         } else if ("telegram.dog".equals(host)) {
             String path = uri.getPath();
@@ -734,6 +744,21 @@ public class Browser {
                 return true;
             }
         } else if ("telesrv.net".equals(host)) {
+            String path = uri.getPath();
+            if (path != null && path.length() > 1) {
+                if (all) {
+                    return true;
+                }
+                path = path.substring(1).toLowerCase();
+                if (path.equals("iv") || path.startsWith("s/")) {
+                    if (forceBrowser != null) {
+                        forceBrowser[0] = true;
+                    }
+                    return false;
+                }
+                return true;
+            }
+        } else if ("wyng.ir".equals(host) || "www.wyng.ir".equals(host)) {
             String path = uri.getPath();
             if (path != null && path.length() > 1) {
                 if (all) {

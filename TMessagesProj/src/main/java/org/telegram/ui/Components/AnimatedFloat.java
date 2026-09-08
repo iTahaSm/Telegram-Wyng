@@ -161,10 +161,12 @@ public class AnimatedFloat {
         return getValue();
     }
 
+    public static float inu_multiplier = 1f;
     public float getValue() {
         if (transition) {
             final long now = SystemClock.elapsedRealtime();
-            final float t = MathUtils.clamp((now - transitionStart - transitionDelay) / (float) transitionDuration, 0, 1);
+            final float multiplier = org.telegram.inugram.InuConfig.animationMultiplier();
+            final float t = MathUtils.clamp((now - transitionStart - transitionDelay) / ((float) transitionDuration / Math.max(0.1f, multiplier)), 0, 1);
             if (now - transitionStart >= transitionDelay) {
                 if (transitionInterpolator == null) {
                     value = AndroidUtilities.lerp(startValue, targetValue, t);

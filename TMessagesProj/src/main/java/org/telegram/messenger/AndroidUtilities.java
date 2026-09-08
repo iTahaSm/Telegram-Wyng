@@ -4596,6 +4596,11 @@ public class AndroidUtilities {
                 return false;
             }
             Uri data = intent.getData();
+            if (data != null && "wyng".equals(data.getScheme())) {
+                String url = data.toString();
+                data = Uri.parse(url.replaceFirst("(?i)^wyng:", "tg:"));
+                intent.setData(data);
+            }
             if (data != null) {
                 String user = null;
                 String password = null;

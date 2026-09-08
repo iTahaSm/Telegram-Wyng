@@ -174,11 +174,11 @@ public class EmojiThemes {
         String lastDayCustomTheme = preferences.getString("lastDayCustomTheme", null);
         int dayAccentId = preferences.getInt("lastDayCustomThemeAccentId", -1);
         if (lastDayCustomTheme == null || Theme.getTheme(lastDayCustomTheme) == null) {
-            lastDayCustomTheme = preferences.getString("lastDayTheme", "Blue");
+            lastDayCustomTheme = preferences.getString("lastDayTheme", "Day");
             Theme.ThemeInfo themeInfo = Theme.getTheme(lastDayCustomTheme);
             if (themeInfo == null) {
-                lastDayCustomTheme = "Blue";
-                dayAccentId = 99;
+                lastDayCustomTheme = "Day";
+                dayAccentId = 0;
             } else {
                 dayAccentId = themeInfo.currentAccentId;
             }
@@ -190,8 +190,8 @@ public class EmojiThemes {
         }
 
         if (dayAccentId == -1) {
-            lastDayCustomTheme = "Blue";
-            dayAccentId = 99;
+            lastDayCustomTheme = "Day";
+            dayAccentId = 0;
         }
 
         String lastDarkCustomTheme = preferences.getString("lastDarkCustomTheme", null);
@@ -239,8 +239,8 @@ public class EmojiThemes {
         themeItem.chatTheme = TLRPC.ChatTheme.ofEmoticon(themeItem.emoji);
 
         ThemeItem blue = new ThemeItem();
-        blue.themeInfo = Theme.getTheme("Blue");
-        blue.accentId = 99;
+        blue.themeInfo = Theme.getTheme("Day");
+        blue.accentId = 0; //Wyng: default chat theme is the green Day theme
         themeItem.items.add(blue);
 
         ThemeItem day = new ThemeItem();
@@ -267,8 +267,8 @@ public class EmojiThemes {
         themeItem.chatTheme = TLRPC.ChatTheme.ofEmoticon(themeItem.emoji);
 
         ThemeItem blue = new ThemeItem();
-        blue.themeInfo = Theme.getTheme("Blue");
-        blue.accentId = 99;
+        blue.themeInfo = Theme.getTheme("Day");
+        blue.accentId = 0; //Wyng: default chat theme is the green Day theme
         themeItem.items.add(blue);
 
         ThemeItem nightBlue = new ThemeItem();
@@ -653,10 +653,10 @@ public class EmojiThemes {
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
             String lastThemeName = isDark
                     ? preferences.getString("lastDarkTheme", "Dark Blue")
-                    : preferences.getString("lastDayTheme", "Blue");
+                    : preferences.getString("lastDayTheme", "Day");
             themeInfo = Theme.getTheme(lastThemeName);
             if (themeInfo == null) {
-                themeInfo = Theme.getTheme(isDark ? "Dark Blue" : "Blue");
+                themeInfo = Theme.getTheme(isDark ? "Dark Blue" : "Day");
             }
         }
         return new Theme.ThemeInfo(themeInfo);

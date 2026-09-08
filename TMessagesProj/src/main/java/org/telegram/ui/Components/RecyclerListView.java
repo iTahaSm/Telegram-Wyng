@@ -177,7 +177,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     private boolean interceptedByChild;
     private boolean wasPressed;
     private boolean disallowInterceptTouchEvents;
-    private boolean instantClick;
+    private boolean instantClick = true;
     private Runnable clickRunnable;
     private boolean ignoreOnScroll;
 
