@@ -13,11 +13,14 @@ jobs:
   build:
     name: Build Telegram APK
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
-      - name: Checkout
+      - name: Checkout repository and submodules
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -33,13 +36,16 @@ jobs:
         run: |
           sdkmanager --install \
             "platforms;android-35" \
+            "platforms;android-36" \
             "build-tools;34.0.0" \
+            "build-tools;36.0.0" \
+            "cmake;3.10.2" \
             "cmake;3.22.1" \
             "ndk;26.3.11579264"
 
           yes | sdkmanager --licenses || true
 
-      - name: Configure Gradle
+      - name: Configure Gradle for CI
         run: |
           mkdir -p ~/.gradle
 
@@ -48,6 +54,15 @@ jobs:
           org.gradle.daemon=false
           org.gradle.parallel=true
           EOF
+
+      - name: Disable repository-local proxy settings
+        run: |
+          if [ -f gradle.properties ]; then
+            sed -i '/^[[:space:]]*systemProp\.http\.proxyHost[[:space:]]*=/d' gradle.properties
+            sed -i '/^[[:space:]]*systemProp\.http\.proxyPort[[:space:]]*=/d' gradle.properties
+            sed -i '/^[[:space:]]*systemProp\.https\.proxyHost[[:space:]]*=/d' gradle.properties
+            sed -i '/^[[:space:]]*systemProp\.https\.proxyPort[[:space:]]*=/d' gradle.properties
+          fi
 
       - name: Make Gradle executable
         run: chmod +x ./gradlew
@@ -59,15 +74,16 @@ jobs:
             --no-daemon
 
       - name: Find APK
+        if: success()
         run: |
           echo "Generated APK files:"
-          find . -type f -name "*.apk" -print
+          find TMessagesProj_App/build/outputs -type f -name "*.apk" -print
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Telegram-Wyng-debug
-          path: |
-            TMessagesProj_App/build/outputs/apk/**/*.apk
+          path: TMessagesProj_App/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
